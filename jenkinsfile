@@ -21,7 +21,7 @@ pipeline {
         }
         stage('Terraform Plan') {
             when {
-                expression {params.action== 'plan' || params.action== 'apply' }
+                expression { params.action == 'plan' || params.action == 'apply' }
             }
             steps {
                 sh 'terraform plan -out=tfplan -input=false'          
