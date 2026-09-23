@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+    parameters {
+        choice(
+            name: 'adtion',
+            choices: ['plan', 'apply', 'destroy'],
+            description: 'Select the Terraform action'
+        )
+        choice(
+            name: 'env',
+            choices: ['dev', 'prod'],
+            description: 'deployment env'
+        )
+    stages {
+        stage('Terraform Init') {
+            steps {
+                sh 'terraform init -input=false'
+            }
+        }
+        stage('Terraform Validate') {
+            steps {
+                sh 'terraform validate -input=false'
+            }
+        }
+        stage('Terraform Plan') {
+            when {
+                expression {params.action== 'plan' || params.action== 'apply' }
+            }
+            steps {
+                sh 'terraform plan -out=tfplan -input=false'          
+           }
+        }
+        stage('Approval') {
+            when {
+                expression {params.action== 'apply' }
+            }
+            steps {
+                sh 'terrafom show tfplan > tfplan.txt'
+                script {
+                    def plan = readFile 'tfplan.txt'
+                    input message: 'Do you want to apply the Terraform changes?',
+                    ok: 'Apply'
+            }
+        }
+        stage('Terraform Apply') {
+            when {
+                expression {params.action== 'apply' }
+            }
+            steps {
+                sh 'terraform apply -input=false -auto-approve tfplan'
+            }
+        }
+    }
+  
+}
