@@ -10,7 +10,8 @@ pipeline {
             name: 'env',
             choices: ['dev', 'prod'],
             description: 'deployment env'
-        )}
+        )
+    }
     stages {
         stage('Terraform Init') {
             steps {
@@ -41,7 +42,7 @@ pipeline {
                     input message: 'Do you want to apply the Terraform changes?',
                     ok: 'Apply'
             }
-        }
+        }}
         stage('Terraform Apply') {
             when {
                 expression {params.action== 'apply' }
@@ -52,4 +53,4 @@ pipeline {
         }
     }
   
-}}
+}
