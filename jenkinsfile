@@ -10,7 +10,7 @@ pipeline {
             name: 'env',
             choices: ['dev', 'prod'],
             description: 'deployment env'
-        )
+        )}
     stages {
         stage('Terraform Init') {
             steps {
@@ -52,4 +52,4 @@ pipeline {
         }
     }
   
-}
+}}
