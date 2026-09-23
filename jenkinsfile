@@ -1,52 +1,109 @@
 pipeline {
     agent any
+
     parameters {
         choice(
-            name: 'adtion',
+            name: 'action',
             choices: ['plan', 'apply', 'destroy'],
             description: 'Select the Terraform action'
         )
-        
     }
+
     stages {
+
         stage('Terraform Init') {
             steps {
                 sh 'terraform init -input=false'
             }
         }
+
         stage('Terraform Validate') {
             steps {
-                sh 'terraform validate '
+                sh 'terraform validate'
             }
         }
+
         stage('Terraform Plan') {
             when {
-                expression { params.action == 'plan' || params.action == 'apply' }
+                expression {
+                    params.action == 'plan' || params.action == 'apply'
+                }
             }
             steps {
-                sh 'terraform plan -out=tfplan -input=false'          
-           }
+                sh 'terraform plan -out=tfplan -input=false'
+            }
         }
+
         stage('Approval') {
             when {
-                expression {params.action== 'apply' }
+                expression {
+                    params.action == 'apply'
+                }
             }
             steps {
-                sh 'terrafom show tfplan > tfplan.txt'
+                sh 'terraform show tfplan > tfplan.txt'
+
                 script {
-                    def plan = readFile 'tfplan.txt'
-                    input message: 'Do you want to apply the Terraform changes?',
-                    ok: 'Apply'
+                    def plan = readFile('tfplan.txt')
+
+                    echo "Terraform Plan:"
+                    echo plan
+
+                    input(
+                        message: 'Do you want to apply the Terraform changes?',
+                        ok: 'Apply'
+                    )
+                }
             }
-        }}
+        }
+
         stage('Terraform Apply') {
             when {
-                expression {params.action== 'apply' }
+                expression {
+                    params.action == 'apply'
+                }
             }
             steps {
                 sh 'terraform apply -input=false -auto-approve tfplan'
             }
         }
+
+        stage('Terraform Destroy') {
+            when {
+                expression {
+                    params.action == 'destroy'
+                }
+            }
+            steps {
+                sh 'terraform plan -destroy -out=tfplan-destroy -input=false'
+            }
+        }
+
+        stage('Destroy Approval') {
+            when {
+                expression {
+                    params.action == 'destroy'
+                }
+            }
+            steps {
+                script {
+                    input(
+                        message: 'Do you want to destroy the Terraform infrastructure?',
+                        ok: 'Destroy'
+                    )
+                }
+            }
+        }
+
+        stage('Terraform Destroy Apply') {
+            when {
+                expression {
+                    params.action == 'destroy'
+                }
+            }
+            steps {
+                sh 'terraform apply -input=false -auto-approve tfplan-destroy'
+            }
+        }
     }
-  
 }
