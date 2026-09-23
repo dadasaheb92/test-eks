@@ -20,7 +20,7 @@ pipeline {
         }
         stage('Terraform Validate') {
             steps {
-                sh 'terraform validate -input=false'
+                sh 'terraform validate '
             }
         }
         stage('Terraform Plan') {
