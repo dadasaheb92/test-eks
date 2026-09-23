@@ -6,11 +6,7 @@ pipeline {
             choices: ['plan', 'apply', 'destroy'],
             description: 'Select the Terraform action'
         )
-        choice(
-            name: 'env',
-            choices: ['dev', 'prod'],
-            description: 'deployment env'
-        )
+        
     }
     stages {
         stage('Terraform Init') {
